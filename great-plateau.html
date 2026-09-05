@@ -131,6 +131,31 @@
   .panel h2{font-family:var(--display);font-size:29px;letter-spacing:.05em;margin:0 0 4px}
   .panel .eyebrow{font-family:var(--ui);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber);margin-bottom:9px}
   .panel p{color:#d9caa9;line-height:1.62;margin:0 0 20px}
+  /* real-heightmap loader */
+  #hmwrap{display:flex;gap:22px;flex-wrap:wrap}
+  #hmdrop{position:relative;width:300px;height:300px;border:1px dashed var(--faint);border-radius:2px;
+    background:#0d0b08;cursor:pointer;flex:0 0 auto;overflow:hidden}
+  #hmdrop.over{border-color:var(--cyan)}
+  #hmprev{display:block;width:300px;height:300px;image-rendering:pixelated}
+  #hmhint{position:absolute;left:0;right:0;bottom:0;text-align:center;padding:7px 6px;font-family:var(--ui);
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    background:linear-gradient(transparent,rgba(12,9,6,.9));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #hmctl{flex:1 1 300px;min-width:284px;font-family:var(--ui);font-size:14px}
+  #hmctl label{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:5px 0;border-bottom:1px solid rgba(242,231,207,.08)}
+  #hmctl label span{color:var(--muted);letter-spacing:.06em}
+  #hmctl input[type=number]{width:98px;background:rgba(242,231,207,.05);border:1px solid var(--faint);
+    color:var(--parchment);font-family:var(--ui);font-size:14px;padding:4px 7px;border-radius:2px}
+  #hmctl input[type=number]:focus{border-color:var(--amber);outline:none}
+  #hmctl input[type=range]{width:132px;accent-color:var(--amber)}
+  #hmctl input[type=checkbox]{accent-color:var(--amber);width:16px;height:16px}
+  #hmctl button.mini{font-family:var(--ui);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    background:transparent;color:var(--parchment);border:1px solid var(--faint);padding:4px 11px;
+    cursor:pointer;border-radius:2px}
+  #hmctl button.mini:hover{border-color:var(--amber);color:var(--amber)}
+  #hmstat{margin-top:13px;color:var(--muted);font-size:13px;line-height:1.55}
+  #hmstat b{color:var(--parchment)}
+  .panel p k{color:var(--cyan);font-family:var(--ui);font-size:13px;letter-spacing:.02em}
   #mapwrap{position:relative;width:min(72vh,640px);height:min(72vh,640px);border:1px solid var(--faint);background:#0d0b08}
   #bigmap{width:100%;height:100%;display:block}
   #markers{position:absolute;inset:0}
@@ -223,6 +248,7 @@
       <div><span>Urbosa’s Fury</span><k>J</k></div>
       <div><span>Daruk’s Protection</span><k>K</k></div>
       <div><span>Shield surf</span><k>Z in air</k></div>
+      <div><span>Real heightmap</span><k>N</k></div>
       <div><span>Rune</span><k>F</k></div>
       <div><span>Cycle rune</span><k>R</k></div>
       <div><span>Interact</span><k>E</k></div>
@@ -259,6 +285,40 @@
   <div id="mapwrap"><canvas id="bigmap" width="760" height="760"></canvas><div id="markers"></div></div>
 </div></div>
 
+<div class="screen" id="hmapscreen"><div class="panel" style="max-width:860px">
+  <div class="eyebrow">Terrain</div>
+  <h2>Real heightmap</h2>
+  <p>Drop an extracted <b>Breath of the Wild</b> heightmap here and Hyrule is rebuilt from it.
+     Takes a headerless <k>.r16</k> / <k>.raw</k> / <k>.hght</k> of uint16 little-endian samples,
+     or a <k>.png</k> — 8-bit grey, or 16 bits packed into red and green. Nothing ships with this
+     file: extract your own from <k>Terrain/A/MainField</k> with botw-tools or BotWHeightMapConverter.
+     Region labels sit on the preview so you can line the raster up before baking.</p>
+  <div id="hmwrap">
+    <div id="hmdrop">
+      <canvas id="hmprev" width="300" height="300"></canvas>
+      <div id="hmhint">Drop a file, or click to choose</div>
+      <input type="file" id="hmfile" accept=".r16,.raw,.hght,.png,image/png" hidden>
+    </div>
+    <div id="hmctl">
+      <label><span>Span, metres</span><input type="number" id="hmSpan" step="100"></label>
+      <label><span>Centre east</span><input type="number" id="hmOffX" step="50"></label>
+      <label><span>Centre north</span><input type="number" id="hmOffZ" step="50"></label>
+      <label><span>Rotate</span><button class="mini" id="hmRot">0°</button></label>
+      <label><span>Flip north–south</span><input type="checkbox" id="hmFlip"></label>
+      <label><span>Sea level, raw</span><input type="number" id="hmSea" step="1"></label>
+      <label><span>Relief, metres</span><input type="number" id="hmRelief" step="10"></label>
+      <label><span>Blend</span><input type="range" id="hmBlend" min="0" max="100" step="1"><b id="hmBlendV">100%</b></label>
+      <label><span>Presets</span><span><button class="mini" id="hmFit">Auto-fit</button>
+        <button class="mini" id="hmTscb">TSCB</button></span></label>
+      <div id="hmstat"></div>
+    </div>
+  </div>
+  <div class="btnrow" style="margin-top:20px">
+    <button class="act primary" id="hmApply">Apply</button>
+    <button class="act" id="hmClear">Clear</button>
+    <button class="act" id="hmClose">Close</button>
+  </div>
+</div></div>
 <div class="screen" id="cookpanel"><div class="panel" style="max-width:760px">
   <div class="eyebrow">Cooking Pot</div><h2>What goes in the pot?</h2>
   <p>Up to five ingredients. Effects only carry over when nothing contradicts them — mix two different effects and you get a plain meal.</p>
@@ -915,12 +975,68 @@ function hyruleH(x,z){
   }
   return h;
 }
+/* ==========================================================================
+   REAL TERRAIN — an extracted Breath of the Wild heightmap, dropped in.
+   The game keeps its ground as 256x256 uint16 tiles (.hght) indexed by
+   Terrain/A/MainField.tscb; community tools stitch those into one square
+   raster.  Nothing ships with this file: until you load one HMAP.data is
+   null and the 161 sculpting passes above are the entire world.
+     .r16 .raw .hght   headerless uint16 little-endian, side = sqrt(bytes/2)
+     .png              8-bit grey, or 16-bit packed as R*256+G
+   Press N in game to open the loader.
+   ========================================================================== */
+const HMAP={
+  data:null,        // Uint16Array, side*side, row 0 = north
+  side:0, name:'',
+  span:10000,       // metres the raster covers, edge to edge
+  offX:0, offZ:0,   // where the raster's centre sits in world space
+  quarters:0,       // 0-3 quarter turns
+  flipZ:false,
+  lo:0, hi:65535,   // observed range of the raster
+  seaRaw:0,         // raster value sitting at the water line
+  metres:800,       // world metres from seaRaw up to hi
+  blend:1,          // 0 keep the sculpt, 1 all real data
+  feather:400       // metres of crossfade at the raster's edge
+};
+let hmapU=0, hmapV=0, hmapW=0;
+/* world -> raster.  Leaves the sample point in hmapU/hmapV and its weight
+   in hmapW, which falls off near the edge so the data can't end in a cliff. */
+function hmapProject(x,z){
+  let lx=x-HMAP.offX, lz=z-HMAP.offZ;
+  for(let q=0;q<HMAP.quarters;q++){ const t=lx; lx=lz; lz=-t; }
+  if(HMAP.flipZ) lz=-lz;
+  const half=HMAP.span/2;
+  const edge=Math.min(half-Math.abs(lx), half-Math.abs(lz));
+  hmapW = edge<=0 ? 0 : (HMAP.feather>0 ? smooth(clamp(edge/HMAP.feather,0,1)) : 1);
+  const S=HMAP.side||1;
+  hmapU=(lx/HMAP.span+.5)*(S-1);
+  hmapV=(lz/HMAP.span+.5)*(S-1);
+  return hmapW>0;
+}
+function hmapAt(x,z){
+  const D=HMAP.data;
+  if(!D||!hmapProject(x,z)) return NaN;
+  const S=HMAP.side;
+  const u=clamp(hmapU,0,S-1), v=clamp(hmapV,0,S-1);
+  const i=Math.min(Math.floor(u),S-2), j=Math.min(Math.floor(v),S-2);
+  const fx=u-i, fz=v-j;
+  const raw=lerp(lerp(D[j*S+i],D[j*S+i+1],fx), lerp(D[(j+1)*S+i],D[(j+1)*S+i+1],fx), fz);
+  return HWATER+(raw-HMAP.seaRaw)*HMAP.metres/Math.max(1,HMAP.hi-HMAP.seaRaw);
+}
+
 const HHM=new Float32Array(HGRID*HGRID);
-for(let j=0;j<HGRID;j++)for(let i=0;i<HGRID;i++)
-  HHM[j*HGRID+i]=hyruleH(-HHALF+i*HCELL,-HHALF+j*HCELL);
-{ const T=new Float32Array(HHM);
+function bakeHyrule(){
+  for(let j=0;j<HGRID;j++)for(let i=0;i<HGRID;i++){
+    const x=-HHALF+i*HCELL, z=-HHALF+j*HCELL;
+    let h=hyruleH(x,z);
+    if(HMAP.data){ const r=hmapAt(x,z); if(r===r) h=lerp(h,r,HMAP.blend*hmapW); }
+    HHM[j*HGRID+i]=h;
+  }
+  const T=new Float32Array(HHM);
   for(let j=1;j<HGRID-1;j++)for(let i=1;i<HGRID-1;i++){const k=j*HGRID+i;
-    HHM[k]=(T[k]*4+T[k-1]+T[k+1]+T[k-HGRID]+T[k+HGRID])/8;} }
+    HHM[k]=(T[k]*4+T[k-1]+T[k+1]+T[k-HGRID]+T[k+HGRID])/8;}
+}
+bakeHyrule();
 function hyruleAt(x,z){
   const gx=(x+HHALF)/HCELL, gz=(z+HHALF)/HCELL;
   const i=Math.floor(gx), j=Math.floor(gz);
@@ -1115,16 +1231,17 @@ function terrainH(x,z){
 }
 /* bake */
 const HM=new Float32Array(GRID*GRID);
-for(let j=0;j<GRID;j++)for(let i=0;i<GRID;i++)
-  HM[j*GRID+i]=terrainH(-HALF+i*CELL,-HALF+j*CELL);
-/* 099 smoothing pass, done on the baked grid */
-{
+function bakePlateau(){
+  for(let j=0;j<GRID;j++)for(let i=0;i<GRID;i++)
+    HM[j*GRID+i]=terrainH(-HALF+i*CELL,-HALF+j*CELL);
+  /* 099 smoothing pass, done on the baked grid */
   const T=new Float32Array(HM);
   for(let j=1;j<GRID-1;j++)for(let i=1;i<GRID-1;i++){
     const k=j*GRID+i;
     HM[k]=(T[k]*4+T[k-1]+T[k+1]+T[k-GRID]+T[k+GRID])/8;
   }
 }
+bakePlateau();
 function groundAt(x,z){
   const gx=(x+HALF)/CELL, gz=(z+HALF)/CELL;
   const i=Math.floor(gx), j=Math.floor(gz);
@@ -1210,8 +1327,9 @@ sky.frustumCulled=false; scene.add(sky);
 /* ================= BATCH 3 — terrain mesh & biomes ================= */
 const tGeo=new THREE.PlaneGeometry(WORLD,WORLD,GRID-1,GRID-1); tGeo.rotateX(-Math.PI/2);
 const BIOME=new Uint8Array(GRID*GRID);   // 0 grass 1 rock 2 snow 3 sand 4 dirt 5 void
-{
-  const p=tGeo.attributes.position.array, col=new Float32Array(p.length);
+let tCol=null;
+function paintPlateau(){
+  const p=tGeo.attributes.position.array, col=tCol||(tCol=new Float32Array(p.length));
   const C={grass:new THREE.Color(0x5d8a44),grass2:new THREE.Color(0x7f9750),
     rock:new THREE.Color(0x8d8272),sand:new THREE.Color(0xcbb98d),snow:new THREE.Color(0xeef2f6),
     dirt:new THREE.Color(0x6d5a3f),road:new THREE.Color(0x9a8b6c),voidc:new THREE.Color(0x3a3630)};
@@ -1232,9 +1350,11 @@ const BIOME=new Uint8Array(GRID*GRID);   // 0 grass 1 rock 2 snow 3 sand 4 dirt 
     col[k]=t.r; col[k+1]=t.g; col[k+2]=t.b;
     BIOME[gz*GRID+gx]=b;
   }
-  tGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  if(!tGeo.attributes.color) tGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  tGeo.attributes.position.needsUpdate=true; tGeo.attributes.color.needsUpdate=true;
   tGeo.computeVertexNormals();
 }
+paintPlateau();
 const terrainMat=new THREE.MeshLambertMaterial({vertexColors:true});
 const terrain=new THREE.Mesh(tGeo,terrainMat); terrain.receiveShadow=true; scene.add(terrain);
 function biomeAt(x,z){const gx=clamp(Math.round((x+HALF)/CELL),0,GRID-1),
@@ -3975,11 +4095,14 @@ function updateSky(dt){
 }
 /* ---- input ---- */
 addEventListener('keydown',e=>{
+  /* let the heightmap panel's number fields take the keystroke */
+  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
   keys[e.code]=true;
   if(['Space','KeyM','Escape','KeyE','KeyQ','KeyR','KeyF','KeyC','Tab','KeyZ','Digit1','Digit2','Digit3','Digit4'].includes(e.code)) e.preventDefault();
   if(inCut&&e.code==='Space'){ cutT=0; return; }
   if(!P.playing) return;
   if(e.code==='KeyM') toggleMap();
+  else if(e.code==='KeyN') toggleHmap();
   else if(e.code==='Escape') togglePause();
   else if(e.code==='KeyE') interact();
   else if(e.code==='KeyR') cycleRune();
@@ -4385,8 +4508,9 @@ hWater.rotation.x=-Math.PI/2; hWater.position.y=HWATER; scene.add(hWater);
 
 /* the coarse Hyrule terrain */
 const hGeo=new THREE.PlaneGeometry(HW,HW,HGRID-1,HGRID-1); hGeo.rotateX(-Math.PI/2);
-{
-  const p=hGeo.attributes.position.array, col=new Float32Array(p.length);
+let hCol=null;
+function paintHyrule(){
+  const p=hGeo.attributes.position.array, col=hCol||(hCol=new Float32Array(p.length));
   const C={grass:new THREE.Color(0x59853f), grass2:new THREE.Color(0x7d9450),
     lush:new THREE.Color(0x3f7a3a), rock:new THREE.Color(0x8d8272), scree:new THREE.Color(0x6f6a60),
     sand:new THREE.Color(0xd8c496), dune:new THREE.Color(0xe0cb96), snow:new THREE.Color(0xeef2f6),
@@ -4415,12 +4539,179 @@ const hGeo=new THREE.PlaneGeometry(HW,HW,HGRID-1,HGRID-1); hGeo.rotateX(-Math.PI
     t.offsetHSL(0,0,(n-.5)*.05);
     col[k]=t.r; col[k+1]=t.g; col[k+2]=t.b;
   }
-  hGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  if(!hGeo.attributes.color) hGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  hGeo.attributes.position.needsUpdate=true; hGeo.attributes.color.needsUpdate=true;
   hGeo.computeVertexNormals();
 }
+paintHyrule();
 const hyruleMesh=new THREE.Mesh(hGeo,new THREE.MeshLambertMaterial({vertexColors:true}));
 hyruleMesh.receiveShadow=true; hyruleMesh.matrixAutoUpdate=false; hyruleMesh.updateMatrix();
 scene.add(hyruleMesh);
+
+/* ==========================================================================
+   REAL HEIGHTMAP — loader, registration preview, and the rebuild it triggers.
+   Everything downstream reads the baked HHM/HM grids, so swapping the source
+   of those two arrays and repainting the meshes is the whole operation.
+   ========================================================================== */
+function rebuildTerrain(){
+  bakeHyrule(); bakePlateau();
+  paintHyrule(); paintPlateau();
+  if(typeof P!=='undefined'&&P.pos) P.pos.y=Math.max(P.pos.y,groundAt(P.pos.x,P.pos.z)+1);
+}
+
+/* box-average down to something the 401-grid can actually use — a stitched
+   LOD 8 raster is 65536 square, and we only ever sample 401 points across */
+function hmDecimate(src,S,maxS){
+  if(S<=maxS) return {data:src,side:S};
+  const step=Math.ceil(S/maxS), T=Math.floor(S/step), out=new Uint16Array(T*T);
+  for(let j=0;j<T;j++)for(let i=0;i<T;i++){
+    let a=0;
+    for(let b=0;b<step;b++)for(let c=0;c<step;c++) a+=src[(j*step+b)*S+(i*step+c)];
+    out[j*T+i]=a/(step*step);
+  }
+  return {data:out,side:T};
+}
+function hmFromBuffer(buf){
+  const n=buf.byteLength>>1, S=Math.round(Math.sqrt(n));
+  if(!n||S*S!==n) throw new Error('not a square uint16 raster ('+buf.byteLength+' bytes)');
+  return {data:new Uint16Array(buf),side:S};
+}
+function hmFromImage(img){
+  const S=Math.min(2048,Math.max(img.width,img.height));
+  const c=document.createElement('canvas'); c.width=c.height=S;
+  const g=c.getContext('2d',{willReadFrequently:true});
+  g.drawImage(img,0,0,S,S);
+  const px=g.getImageData(0,0,S,S).data;
+  /* a plain grey PNG has R==G==B everywhere; 16 bits packed into R and G will not */
+  let packed=false;
+  for(let k=0;k<px.length&&!packed;k+=4*997) if(px[k]!==px[k+1]) packed=true;
+  const out=new Uint16Array(S*S);
+  for(let i=0,k=0;i<out.length;i++,k+=4) out[i]=packed?((px[k]<<8)|px[k+1]):px[k]*257;
+  return {data:out,side:S,packed};
+}
+
+let hmPrev=null;              // small greyscale copy, drawn behind the region pins
+function hmAdopt(o,name){
+  const d=hmDecimate(o.data,o.side,2048);
+  HMAP.data=d.data; HMAP.side=d.side; HMAP.name=name;
+  let lo=65535,hi=0;
+  for(let i=0;i<d.data.length;i++){const v=d.data[i]; if(v<lo)lo=v; if(v>hi)hi=v;}
+  HMAP.lo=lo; HMAP.hi=hi;
+  if(HMAP.seaRaw<lo||HMAP.seaRaw>=hi) HMAP.seaRaw=lo;
+  const T=Math.min(300,d.side), c=document.createElement('canvas');
+  c.width=c.height=T;
+  const g=c.getContext('2d'), im=g.createImageData(T,T);
+  const sp=d.side/T, rng=Math.max(1,hi-lo);
+  for(let j=0;j<T;j++)for(let i=0;i<T;i++){
+    const sj=Math.min(d.side-1,Math.floor(j*sp)), si=Math.min(d.side-1,Math.floor(i*sp));
+    const v=Math.pow((d.data[sj*d.side+si]-lo)/rng,.85), k=(j*T+i)*4, e=Math.round(v*255);
+    im.data[k]=e; im.data[k+1]=e; im.data[k+2]=e; im.data[k+3]=255;
+  }
+  g.putImageData(im,0,0); hmPrev=c;
+  hmSyncUI(); hmDrawPreview();
+}
+
+function hmDrawPreview(){
+  const cv=$('#hmprev'); if(!cv) return;
+  const g=cv.getContext('2d'), W=cv.width;
+  g.fillStyle='#0d0b08'; g.fillRect(0,0,W,W);
+  if(!hmPrev) return;
+  g.imageSmoothingEnabled=false;
+  g.drawImage(hmPrev,0,0,W,W);
+  /* drop every region on it, projected through the current registration —
+     if the numbers are right, the pins land on the right landforms */
+  const S=Math.max(2,HMAP.side);
+  g.font='9px ui-sans-serif,system-ui,sans-serif'; g.textBaseline='middle';
+  for(const k in REGIONS){
+    const R=REGIONS[k];
+    if(!hmapProject(R.x,R.z)) continue;
+    const px=hmapU/(S-1)*W, py=hmapV/(S-1)*W;
+    if(px<0||py<0||px>W||py>W) continue;
+    const t=R.n, w=g.measureText(t).width, left=px<W-w-14;
+    g.fillStyle='rgba(12,9,6,.72)';
+    g.fillRect(left?px+5:px-w-9, py-6, w+5, 12);
+    g.fillStyle='#f2e7cf';
+    g.fillText(t, left?px+7:px-w-7, py+.5);
+    g.fillStyle='rgba(232,163,60,.95)';
+    g.beginPath(); g.arc(px,py,2.6,0,Math.PI*2); g.fill();
+  }
+}
+
+function hmStat(){
+  $('#hmRot').textContent=(HMAP.quarters*90)+'°';
+  $('#hmBlendV').textContent=Math.round(HMAP.blend*100)+'%';
+  $('#hmhint').textContent=HMAP.data?HMAP.name:'Drop a file, or click to choose';
+  $('#hmstat').innerHTML = HMAP.data
+    ? '<b>'+HMAP.side+'×'+HMAP.side+'</b> after decimation, raw range <b>'+HMAP.lo+'–'+HMAP.hi+'</b>.'
+      +' Sea sits at <b>'+HMAP.seaRaw+'</b> with <b>'+HMAP.metres+' m</b> of relief above it,'
+      +' spread over <b>'+HMAP.span+' m</b> of world.'
+    : 'No heightmap loaded — Hyrule is the 161 sculpting passes.';
+}
+function hmSyncUI(){
+  $('#hmSpan').value=HMAP.span; $('#hmOffX').value=HMAP.offX; $('#hmOffZ').value=HMAP.offZ;
+  $('#hmSea').value=HMAP.seaRaw; $('#hmRelief').value=HMAP.metres;
+  $('#hmBlend').value=Math.round(HMAP.blend*100);
+  $('#hmFlip').checked=HMAP.flipZ;
+  hmStat();
+}
+function hmLoadFile(f){
+  if(!f) return;
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  const fail=err=>toast('Could not read that file — '+err.message);
+  if(ext==='png'||f.type==='image/png'){
+    const url=URL.createObjectURL(f), img=new Image();
+    img.onload=()=>{ try{ hmAdopt(hmFromImage(img),f.name); toast('Heightmap read'); }
+                     catch(err){ fail(err); } URL.revokeObjectURL(url); };
+    img.onerror=()=>{ toast('Could not decode that PNG'); URL.revokeObjectURL(url); };
+    img.src=url;
+  } else {
+    f.arrayBuffer().then(b=>{ try{ hmAdopt(hmFromBuffer(b),f.name); toast('Heightmap read'); }
+                              catch(err){ fail(err); } }, fail);
+  }
+}
+
+let hmapOpen=false;
+function toggleHmap(){
+  hmapOpen=!hmapOpen; $('#hmapscreen').classList.toggle('on',hmapOpen);
+  if(hmapOpen){ P.playing=false; document.exitPointerLock&&document.exitPointerLock(); hmSyncUI(); hmDrawPreview(); }
+  else startPlay();
+}
+{
+  const drop=$('#hmdrop'), file=$('#hmfile');
+  drop.onclick=()=>file.click();
+  file.onchange=()=>{ hmLoadFile(file.files[0]); file.value=''; };
+  ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>hmLoadFile(e.dataTransfer.files[0]));
+  /* live handlers repaint the preview but never write back into the field
+     being typed in, or the caret jumps */
+  const live=(id,fn)=>{ const el=$(id); el.oninput=()=>{ fn(parseFloat(el.value)||0); hmStat(); hmDrawPreview(); }; };
+  live('#hmSpan',   v=>HMAP.span=Math.max(100,v));
+  live('#hmOffX',   v=>HMAP.offX=v);
+  live('#hmOffZ',   v=>HMAP.offZ=v);
+  live('#hmSea',    v=>HMAP.seaRaw=v);
+  live('#hmRelief', v=>HMAP.metres=Math.max(1,v));
+  $('#hmBlend').oninput=()=>{ HMAP.blend=(parseFloat($('#hmBlend').value)||0)/100; hmStat(); };
+  $('#hmFlip').onchange=()=>{ HMAP.flipZ=$('#hmFlip').checked; hmDrawPreview(); };
+  $('#hmRot').onclick=()=>{ HMAP.quarters=(HMAP.quarters+1)%4; hmStat(); hmDrawPreview(); };
+  /* auto-fit drops the raster's own range onto Hyrule; TSCB uses the documented
+     full-scale mapping instead — uint16 across a max terrain height of 800 */
+  $('#hmFit').onclick=()=>{ HMAP.seaRaw=HMAP.lo; HMAP.metres=800; HMAP.span=10000;
+    HMAP.offX=0; HMAP.offZ=0; HMAP.quarters=0; HMAP.flipZ=false; hmSyncUI(); hmDrawPreview(); };
+  $('#hmTscb').onclick=()=>{ HMAP.seaRaw=0; HMAP.hi=65535; HMAP.metres=800; hmSyncUI(); hmDrawPreview(); };
+  $('#hmApply').onclick=()=>{
+    if(!HMAP.data){ toast('Load a heightmap first'); return; }
+    const b=$('#hmApply'); b.textContent='Baking…'; b.disabled=true;
+    setTimeout(()=>{ rebuildTerrain(); b.textContent='Apply'; b.disabled=false;
+                     toast('Hyrule rebuilt from '+HMAP.name); toggleHmap(); },30);
+  };
+  $('#hmClear').onclick=()=>{
+    HMAP.data=null; HMAP.side=0; HMAP.name=''; hmPrev=null;
+    rebuildTerrain(); hmSyncUI(); hmDrawPreview(); toast('Back to the sculpt');
+  };
+  $('#hmClose').onclick=()=>toggleHmap();
+  hmSyncUI();
+}
 /* the fine Plateau mesh must draw over the coarse one where they overlap */
 terrain.renderOrder=1; terrain.material.polygonOffset=true;
 terrain.material.polygonOffsetFactor=-2; terrain.material.polygonOffsetUnits=-2;
